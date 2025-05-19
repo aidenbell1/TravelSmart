@@ -16,29 +16,6 @@ The project includes a simple web interface for analyzing reviews and comparing 
 
 The system uses the TripAdvisor Hotel Reviews dataset, which contains reviews with ratings from 1-5 stars.
 
-## Project Structure
-
-```
-travel-sentiment-analysis/
-│
-├── models/                       # Sentiment analysis models
-│   ├── vader_model.py            # VADER-only implementation
-│   ├── bert_model.py             # BERT-only implementation
-│   └── hybrid_model.py           # Combined VADER+BERT model
-│
-├── app/                          # Simple web application
-│   ├── static/                   # CSS, JS files (not used in this simple version)
-│   ├── templates/                # HTML templates
-│   │   └── index.html            # Main application page
-│   └── app.py                    # Flask web application
-│
-├── data/                         # Dataset
-│   └── tripadvisor_hotel_reviews.csv  # TripAdvisor hotel reviews
-│
-├── requirements.txt              # Project dependencies
-└── README.md                     # Project documentation
-```
-
 ## Setup and Installation
 
 1. **Clone the repository:**
@@ -50,7 +27,7 @@ travel-sentiment-analysis/
 2. **Create a virtual environment (recommended):**
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate 
    ```
 
 3. **Install dependencies:**
@@ -75,7 +52,7 @@ travel-sentiment-analysis/
 ## Using the Interface
 
 1. **Input a hotel review:** 
-   - Type in the textbox or select one of the sample reviews
+   - Type in the textbox or select one of the reviews
    
 2. **Choose a model:**
    - VADER (fast, rule-based)
