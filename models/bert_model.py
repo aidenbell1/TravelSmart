@@ -1,5 +1,3 @@
-# BERT Sentiment Analysis Model
-
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 import pandas as pd
@@ -36,7 +34,7 @@ class BertModel:
         if not isinstance(text, str) or not text.strip():
             return {
                 'sentiment': 'neutral',
-                'score': 0.33,  # Default neutral confidence
+                'score': 0.33, 
                 'explanation': 'Empty or invalid text'
             }
         
@@ -150,32 +148,6 @@ class BertModel:
         else:  # 3 stars = neutral
             return 'neutral'
     
-    def evaluate(self, df, text_col='Review', rating_col='Rating', batch_size=8):
-        """Evaluate model performance against ratings"""
-        # Ensure the dataframe has the required columns
-        if text_col not in df.columns or rating_col not in df.columns:
-            raise ValueError(f"DataFrame must contain columns: {text_col} and {rating_col}")
-        
-        # Get texts and expected sentiments
-        texts = df[text_col].tolist()
-        expected = [self.map_rating_to_sentiment(r) for r in df[rating_col]]
-        
-        # Get predictions
-        results = self.analyze_batch(texts, batch_size=batch_size)
-        predictions = [r['sentiment'] for r in results]
-        
-        # Calculate metrics
-        accuracy = accuracy_score(expected, predictions)
-        conf_matrix = confusion_matrix(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        report = classification_report(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        
-        return {
-            'accuracy': accuracy,
-            'confusion_matrix': conf_matrix,
-            'classification_report': report,
-            'predictions': predictions,
-            'expected': expected
-        }
     
     def fine_tune(self, df, text_col='Review', rating_col='Rating', epochs=3, batch_size=8, learning_rate=5e-5):
         """Fine-tune the BERT model on hotel reviews"""

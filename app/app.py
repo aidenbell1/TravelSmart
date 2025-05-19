@@ -7,7 +7,6 @@ import os
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
 
-# Now import the models (use absolute imports, not relative)
 from models.vader_model import VaderModel
 from models.bert_model import BertModel 
 from models.hybrid_model import HybridModel
@@ -16,8 +15,8 @@ app = Flask(__name__)
 
 # Initialize models
 vader_model = VaderModel()
-bert_model = None  # Will be initialized on demand to save memory
-hybrid_model = None  # Will be initialized on demand to save memory
+bert_model = None  
+hybrid_model = None  
 
 # Load a sample of the dataset
 try:
@@ -135,7 +134,7 @@ def stats():
         avg_length = df['review_length'].mean()
         
         # Analyze sentiment of a random sample
-        sample_df = df.sample(min(100, len(df)), random_state=42)
+        sample_df = df.sample(min(1000, len(df)), random_state=42)
         vader_results = vader_model.analyze_batch(sample_df['Review'].tolist())
         sentiment_counts = {}
         for result in vader_results:

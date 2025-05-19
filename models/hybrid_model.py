@@ -1,5 +1,3 @@
-# Hybrid VADER+BERT Sentiment Analysis Model
-
 import torch
 import pandas as pd
 import numpy as np
@@ -176,34 +174,7 @@ class HybridModel:
     def map_rating_to_sentiment(self, rating):
         """Map star rating to expected sentiment"""
         return self.vader_model.map_rating_to_sentiment(rating)
-    
-    def evaluate(self, df, text_col='Review', rating_col='Rating', batch_size=8):
-        """Evaluate model performance against ratings"""
-        # Ensure the dataframe has the required columns
-        if text_col not in df.columns or rating_col not in df.columns:
-            raise ValueError(f"DataFrame must contain columns: {text_col} and {rating_col}")
-        
-        # Get texts and expected sentiments
-        texts = df[text_col].tolist()
-        expected = [self.map_rating_to_sentiment(r) for r in df[rating_col]]
-        
-        # Get predictions
-        results = self.analyze_batch(texts, batch_size=batch_size)
-        predictions = [r['sentiment'] for r in results]
-        
-        # Calculate metrics
-        accuracy = accuracy_score(expected, predictions)
-        conf_matrix = confusion_matrix(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        report = classification_report(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        
-        return {
-            'accuracy': accuracy,
-            'confusion_matrix': conf_matrix,
-            'classification_report': report,
-            'predictions': predictions,
-            'expected': expected
-        }
-    
+   
     def save(self, filepath):
         """Save the hybrid model configuration"""
         config = {

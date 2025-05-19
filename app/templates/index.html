@@ -433,7 +433,7 @@
                     
                     if (result.details) {
                         if (model === 'vader' && result.details.pos !== undefined) {
-                            // VADER details
+                            
                             detailsHtml += '<p>VADER scores:</p>';
                             detailsHtml += `<ul>
                                 <li>Positive: ${result.details.pos.toFixed(4)}</li>
@@ -442,7 +442,7 @@
                                 <li>Compound: ${result.details.compound.toFixed(4)}</li>
                             </ul>`;
                         } else if (model === 'bert' && result.details.probabilities) {
-                            // BERT details
+                            
                             detailsHtml += '<p>BERT probabilities:</p>';
                             detailsHtml += '<ul>';
                             for (const [sentiment, prob] of Object.entries(result.details.probabilities)) {
@@ -450,7 +450,7 @@
                             }
                             detailsHtml += '</ul>';
                         } else if (model === 'hybrid') {
-                            // Hybrid model details
+                           
                             detailsHtml += '<p>Model weights:</p>';
                             detailsHtml += `<ul>
                                 <li>VADER weight: ${result.details.vader_weight.toFixed(2)}</li>

@@ -1,5 +1,3 @@
-# VADER Sentiment Analysis Model
-
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import pandas as pd
@@ -85,47 +83,7 @@ class VaderModel:
             return 'neutral' if rating == 2 else 'negative'
         else:  # 3 stars = neutral
             return 'neutral'
-    
-    def evaluate(self, df, text_col='Review', rating_col='Rating'):
-        """Evaluate model performance against ratings"""
-        # Ensure the dataframe has the required columns
-        if text_col not in df.columns or rating_col not in df.columns:
-            raise ValueError(f"DataFrame must contain columns: {text_col} and {rating_col}")
-        
-        # Create predicted and expected sentiment
-        predictions = []
-        expected = []
-        
-        # Analyze each review
-        for _, row in df.iterrows():
-            text = row[text_col]
-            rating = row[rating_col]
-            
-            # Skip invalid entries
-            if not isinstance(text, str) or not isinstance(rating, (int, float)):
-                continue
-                
-            # Get prediction and expected sentiment
-            result = self.analyze(text)
-            predicted_sentiment = result['sentiment']
-            expected_sentiment = self.map_rating_to_sentiment(rating)
-            
-            predictions.append(predicted_sentiment)
-            expected.append(expected_sentiment)
-        
-        # Calculate metrics
-        accuracy = accuracy_score(expected, predictions)
-        conf_matrix = confusion_matrix(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        report = classification_report(expected, predictions, labels=['positive', 'neutral', 'negative'])
-        
-        return {
-            'accuracy': accuracy,
-            'confusion_matrix': conf_matrix,
-            'classification_report': report,
-            'predictions': predictions,
-            'expected': expected
-        }
-    
+
     def save(self, filepath):
         """Save the model to a file"""
         with open(filepath, 'wb') as f:
