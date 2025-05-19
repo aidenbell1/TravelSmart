@@ -22,7 +22,7 @@ hybrid_model = None  # Will be initialized on demand to save memory
 # Load a sample of the dataset
 try:
     df = pd.read_csv('../data/tripadvisor_hotel_reviews.csv')
-    sample_reviews = df.sample(100, random_state=42)['Review'].tolist()
+    sample_reviews = df.sample(1000, random_state=42)['Review'].tolist()
 except Exception as e:
     print(f"Error loading dataset: {e}")
     sample_reviews = [
