@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Review Sentiment Analysis</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .review-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 0.5rem;
+        }
+        .review-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .sentiment-positive {
+            border-left: 5px solid #28a745;
+        }
+        .sentiment-neutral {
+            border-left: 5px solid #ffc107;
+        }
+        .sentiment-negative {
+            border-left: 5px solid #dc3545;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #result-container {
+            display: none;
+        }
+        .model-tab {
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 5px 5px 0 0;
+            background-color: #f8f9fa;
+        }
+        .model-tab.active {
+            background-color: #ffffff;
+            border-bottom: none;
+        }
+        .model-content {
+            display: none;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 0 0 5px 5px;
+        }
+        .model-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Hotel Review Sentiment Analysis</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Analyze Hotel Review Sentiment</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="analyze-form">
+                            <div class="mb-3">
+                                <label for="review-text" class="form-label">Enter a hotel review:</label>
+                                <textarea class="form-control" id="review-text" rows="4" placeholder="Enter a hotel review here..."></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Select model:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="model" id="model-vader" value="vader" checked>
+                                    <label class="form-check-label" for="model-vader">
+                                        VADER (fast, rule-based)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="model" id="model-bert" value="bert">
+                                    <label class="form-check-label" for="model-bert">
+                                        BERT (slower, deep learning)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="model" id="model-hybrid" value="hybrid">
+                                    <label class="form-check-label" for="model-hybrid">
+                                        Hybrid (both VADER + BERT)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Analyze Sentiment</button>
+                            <button type="button" id="compare-button" class="btn btn-secondary">Compare All Models</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <!-- Loading spinner -->
+                <div id="loader" class="loader"></div>
+                
+                <!-- Results container -->
+                <div id="result-container" class="card">
+                    <div class="card-header">
+                        <h5>Analysis Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="single-result">
+                            <div class="alert" id="sentiment-alert" role="alert">
+                                <strong id="sentiment-label">Positive</strong>: <span id="sentiment-explanation"></span>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Details:</strong>
+                                <div id="sentiment-details" class="mt-2"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="compare-result" style="display: none;">
+                            <div class="mb-3">
+                                <div class="d-flex mb-2">
+                                    <div class="model-tab active" data-model="vader">VADER</div>
+                                    <div class="model-tab" data-model="bert">BERT</div>
+                                    <div class="model-tab" data-model="hybrid">Hybrid</div>
+                                </div>
+                                
+                                <div class="model-content active" id="vader-content">
+                                    <div class="alert" id="vader-alert" role="alert">
+                                        <strong id="vader-label">Positive</strong>: <span id="vader-explanation"></span>
+                                    </div>
+                                    <div id="vader-details"></div>
+                                </div>
+                                
+                                <div class="model-content" id="bert-content">
+                                    <div class="alert" id="bert-alert" role="alert">
+                                        <strong id="bert-label">Positive</strong>: <span id="bert-explanation"></span>
+                                    </div>
+                                    <div id="bert-details"></div>
+                                </div>
+                                
+                                <div class="model-content" id="hybrid-content">
+                                    <div class="alert" id="hybrid-alert" role="alert">
+                                        <strong id="hybrid-label">Positive</strong>: <span id="hybrid-explanation"></span>
+                                    </div>
+                                    <div id="hybrid-details"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Sample Reviews</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Click on a review to analyze it:</p>
+                        <div id="sample-reviews">
+                            {% for review in sample_reviews %}
+                            <div class="card review-card">
+                                <div class="card-body">
+                                    {{ review[:200] }}{% if review|length > 200 %}...{% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 mb-5">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>About the Models</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6>VADER (Valence Aware Dictionary and Sentiment Reasoner)</h6>
+                        <p>VADER is a lexicon and rule-based sentiment analysis tool specifically attuned to sentiments expressed in social media. It's fast and works well for short texts.</p>
+                        
+                        <h6>BERT (Bidirectional Encoder Representations from Transformers)</h6>
+                        <p>BERT is a deep learning model that understands context and relationships between words. It produces more nuanced results but is computationally intensive.</p>
+                        
+                        <h6>Hybrid Model</h6>
+                        <p>Our hybrid approach combines VADER and BERT, using VADER for short texts and BERT for longer, more complex reviews. This balances accuracy and performance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeForm = document.getElementById('analyze-form');
+            const compareButton = document.getElementById('compare-button');
+            const reviewTextarea = document.getElementById('review-text');
+            const sampleReviews = document.querySelectorAll('.review-card');
+            const resultContainer = document.getElementById('result-container');
+            const singleResult = document.getElementById('single-result');
+            const compareResult = document.getElementById('compare-result');
+            const loader = document.getElementById('loader');
+            
+            // Tab switching for compare results
+            const modelTabs = document.querySelectorAll('.model-tab');
+            const modelContents = document.querySelectorAll('.model-content');
+            
+            modelTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs and contents
+                    modelTabs.forEach(t => t.classList.remove('active'));
+                    modelContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    const model = this.getAttribute('data-model');
+                    this.classList.add('active');
+                    document.getElementById(`${model}-content`).classList.add('active');
+                });
+            });
+            
+            // Analyze form submission
+            analyzeForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const text = reviewTextarea.value.trim();
+                if (!text) {
+                    alert('Please enter a review text');
+                    return;
+                }
+                
+                // Get selected model
+                const model = document.querySelector('input[name="model"]:checked').value;
+                
+                // Show loader
+                loader.style.display = 'block';
+                resultContainer.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text, model })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        // Update UI with result
+                        updateSingleResult(result);
+                        
+                        // Show result container
+                        singleResult.style.display = 'block';
+                        compareResult.style.display = 'none';
+                        resultContainer.style.display = 'block';
+                    } else {
+                        alert(`Error: ${result.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    loader.style.display = 'none';
+                }
+            });
+            
+            // Compare button click
+            compareButton.addEventListener('click', async function() {
+                const text = reviewTextarea.value.trim();
+                if (!text) {
+                    alert('Please enter a review text');
+                    return;
+                }
+                
+                // Show loader
+                loader.style.display = 'block';
+                resultContainer.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/compare', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        // Update UI with comparison results
+                        updateCompareResult(result);
+                        
+                        // Show comparison container
+                        singleResult.style.display = 'none';
+                        compareResult.style.display = 'block';
+                        resultContainer.style.display = 'block';
+                    } else {
+                        alert(`Error: ${result.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    loader.style.display = 'none';
+                }
+            });
+            
+            // Sample review click
+            sampleReviews.forEach(card => {
+                card.addEventListener('click', function() {
+                    const reviewText = this.querySelector('.card-body').textContent.trim();
+                    reviewTextarea.value = reviewText;
+                    
+                    // Scroll to form
+                    analyzeForm.scrollIntoView({ behavior: 'smooth' });
+                });
+            });
+            
+            // Helper function to update single result UI
+            function updateSingleResult(result) {
+                const sentimentAlert = document.getElementById('sentiment-alert');
+                const sentimentLabel = document.getElementById('sentiment-label');
+                const sentimentExplanation = document.getElementById('sentiment-explanation');
+                const sentimentDetails = document.getElementById('sentiment-details');
+                
+                // Update sentiment alert
+                sentimentAlert.className = 'alert';
+                if (result.sentiment === 'positive') {
+                    sentimentAlert.classList.add('alert-success');
+                } else if (result.sentiment === 'negative') {
+                    sentimentAlert.classList.add('alert-danger');
+                } else {
+                    sentimentAlert.classList.add('alert-warning');
+                }
+                
+                // Update text content
+                sentimentLabel.textContent = result.sentiment.charAt(0).toUpperCase() + result.sentiment.slice(1);
+                sentimentExplanation.textContent = result.explanation;
+                
+                // Update details
+                let detailsHtml = '';
+                if (result.score) {
+                    detailsHtml += `<p>Confidence score: ${result.score.toFixed(4)}</p>`;
+                }
+                
+                if (result.details) {
+                    if (result.details.vader_result && result.details.bert_result) {
+                        // Hybrid model details
+                        detailsHtml += '<p>Model weights:</p>';
+                        detailsHtml += `<ul>
+                            <li>VADER weight: ${result.details.vader_weight.toFixed(2)}</li>
+                            <li>BERT weight: ${result.details.bert_weight.toFixed(2)}</li>
+                        </ul>`;
+                    } else if (result.details.pos !== undefined) {
+                        // VADER details
+                        detailsHtml += '<p>VADER scores:</p>';
+                        detailsHtml += `<ul>
+                            <li>Positive: ${result.details.pos.toFixed(4)}</li>
+                            <li>Neutral: ${result.details.neu.toFixed(4)}</li>
+                            <li>Negative: ${result.details.neg.toFixed(4)}</li>
+                            <li>Compound: ${result.details.compound.toFixed(4)}</li>
+                        </ul>`;
+                    } else if (result.details.probabilities) {
+                        // BERT details
+                        detailsHtml += '<p>BERT probabilities:</p>';
+                        detailsHtml += '<ul>';
+                        for (const [sentiment, prob] of Object.entries(result.details.probabilities)) {
+                            detailsHtml += `<li>${sentiment}: ${prob.toFixed(4)}</li>`;
+                        }
+                        detailsHtml += '</ul>';
+                    }
+                }
+                
+                sentimentDetails.innerHTML = detailsHtml;
+            }
+            
+            // Helper function to update compare result UI
+            function updateCompareResult(results) {
+                const models = ['vader', 'bert', 'hybrid'];
+                
+                models.forEach(model => {
+                    const result = results[model];
+                    const alertEl = document.getElementById(`${model}-alert`);
+                    const labelEl = document.getElementById(`${model}-label`);
+                    const explanationEl = document.getElementById(`${model}-explanation`);
+                    const detailsEl = document.getElementById(`${model}-details`);
+                    
+                    // Update alert class
+                    alertEl.className = 'alert';
+                    if (result.sentiment === 'positive') {
+                        alertEl.classList.add('alert-success');
+                    } else if (result.sentiment === 'negative') {
+                        alertEl.classList.add('alert-danger');
+                    } else {
+                        alertEl.classList.add('alert-warning');
+                    }
+                    
+                    // Update text content
+                    labelEl.textContent = result.sentiment.charAt(0).toUpperCase() + result.sentiment.slice(1);
+                    explanationEl.textContent = result.explanation;
+                    
+                    // Update details
+                    let detailsHtml = '';
+                    if (result.score) {
+                        detailsHtml += `<p>Confidence score: ${result.score.toFixed(4)}</p>`;
+                    }
+                    
+                    if (result.details) {
+                        if (model === 'vader' && result.details.pos !== undefined) {
+                            // VADER details
+                            detailsHtml += '<p>VADER scores:</p>';
+                            detailsHtml += `<ul>
+                                <li>Positive: ${result.details.pos.toFixed(4)}</li>
+                                <li>Neutral: ${result.details.neu.toFixed(4)}</li>
+                                <li>Negative: ${result.details.neg.toFixed(4)}</li>
+                                <li>Compound: ${result.details.compound.toFixed(4)}</li>
+                            </ul>`;
+                        } else if (model === 'bert' && result.details.probabilities) {
+                            // BERT details
+                            detailsHtml += '<p>BERT probabilities:</p>';
+                            detailsHtml += '<ul>';
+                            for (const [sentiment, prob] of Object.entries(result.details.probabilities)) {
+                                detailsHtml += `<li>${sentiment}: ${prob.toFixed(4)}</li>`;
+                            }
+                            detailsHtml += '</ul>';
+                        } else if (model === 'hybrid') {
+                            // Hybrid model details
+                            detailsHtml += '<p>Model weights:</p>';
+                            detailsHtml += `<ul>
+                                <li>VADER weight: ${result.details.vader_weight.toFixed(2)}</li>
+                                <li>BERT weight: ${result.details.bert_weight.toFixed(2)}</li>
+                                <li>Is short text: ${result.details.is_short_text}</li>
+                            </ul>`;
+                        }
+                    }
+                    
+                    detailsEl.innerHTML = detailsHtml;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
