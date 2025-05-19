@@ -35,9 +35,6 @@ The system uses the TripAdvisor Hotel Reviews dataset, which contains reviews wi
    pip install -r requirements.txt
    ```
 
-4. **Place the dataset:**
-   - Put the `tripadvisor_hotel_reviews.csv` file in the `data/` directory
-
 ## Running the Application
 
 1. **Start the Flask server:**
